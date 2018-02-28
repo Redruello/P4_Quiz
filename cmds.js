@@ -234,7 +234,7 @@ exports.playCmd = rl => {
  */
 exports.creditsCmd = rl => {
     log('Autores de la práctica:');
-    log('Álvaro Redruello.', 'green');
+    log('ALVARO', 'green');
     rl.prompt();
 };
 
