@@ -198,7 +198,7 @@ exports.playCmd = rl => {
     const playOne = () => {
 
         if (toBeResolved.length == 0) {
-            log('Ninguna pregunta restante. Puntuación:');
+            log('Ninguna pregunta restante. Fin del juego. Puntuación:');
             biglog(score, 'blue');
             rl.prompt();
         } else {
@@ -216,7 +216,7 @@ exports.playCmd = rl => {
                     rl.prompt();
                 } else {
                     log('INCORRECTO');
-                    log('Puntuación:');
+                    log('Fin del juego. Puntuación:');
                     biglog(score, 'blue');
                     rl.prompt();
                 }
