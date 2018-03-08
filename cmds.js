@@ -1,7 +1,9 @@
 
+const Sequelize = require('sequelize');
+
 const { colorize, log, biglog, errorlog } = require("./out");
 
-const model = require("./model");
+const { models } = require("./model");
 
 /**
  * Muestra la ayuda.
@@ -30,12 +32,41 @@ exports.helpCmd = rl => {
  * @param rl    Objeto readline usado para implementar el CLI.
  */
 exports.listCmd = rl => {
+    models.quiz.findAll()
+        .each(quiz => {
+            log(` [${colorize(quiz.id, 'magenta')}]: ${quiz.question}`);
+        })
+        .catch(error => {
+            errorlog(error.message);
+        })
+        .then(() => {
+            rl.prompt();
+        });
+};
 
-    model.getAll().forEach((quiz, id) => {
-        log(`[${colorize(id, 'magenta')}]: ${quiz.question}`);
+
+/**
+ * Esta función devuelve una promesa que:
+ *  - Valida que se haya introducido un valor para el parámetro.
+ *  - Convierte el parámetro en un número entero.
+ * Si todo va bien, la promesa se satisface y devuelve el valor de id a usar.
+ * 
+ * @param id    Parámetro con el índice a validar. 
+ */
+const validateId = id => {
+
+    return new Sequelize.Promise((resolve, reject) => {
+        if (typeof id === 'undefined') {
+            reject(new Error(`Falta el parámetro <id>.`));
+        } else {
+            id = parseInt(id);      // Coger la parte entera y descartar lo demás.
+            if (Number.isNaN(id)) {
+                reject(new Error(`El valor del parámetro <id> no es un número.`));
+            } else {
+                resolve(id);
+            }
+        }
     });
-
-    rl.prompt();
 };
 
 
@@ -47,18 +78,43 @@ exports.listCmd = rl => {
  */
 exports.showCmd = (rl, id) => {
 
-    if (typeof id === "undefined") {
-        errorlog(`Falta el parámetro id.`);
-    } else {
-        try {
-            const quiz = model.getByIndex(id);
-            log(`[${colorize(id, 'magenta')}]: ${quiz.question} ${colorize('=>', 'magenta')} ${quiz.answer}`);
-        } catch (error) {
+    validateId(id)
+        .then(id => models.quiz.findById(id))
+        .then(quiz => {
+            if (!quiz) {
+                throw new Error(`No esxiste un quiz asociado al id=${id}.`);
+            }
+            log(` [${colorize(quiz.id, 'magenta')}]: ${quiz.question} ${colorize('=>', 'magenta')} ${quiz.answer}`);
+        })
+        .catch(error => {
             errorlog(error.message);
-        }
-    }
+        })
+        .then(() => {
+            rl.prompt();
+        });
+};
 
-    rl.prompt();
+
+/**
+ * Esta función convierte la llamada rl.question, que está basada en callbacks, en una 
+ * basada en promesas.
+ * 
+ * Esta función devuelve una promesa que cuando se cumple, proporciona el texto introductorio.
+ * Entonces la llamada a then que hay que hacer la promesa devuelta será:
+ *          .then(answer => {...})
+ * 
+ * También colorea en rojo el texto de la pregunta, elimina espacios al principio y final.
+ * 
+ * @param rl        Objeto readline usado para implementar el CLI.
+ * @param text      Pregunta que hay que hacerle al usuario.
+ */
+const makeQuestion = (rl, text) => {
+
+    return new Sequelize.Promise((resolve, reject) => {
+        rl.question(colorize(text, 'red'), answer => {
+            resolve(answer.trim());
+        });
+    });
 };
 
 
@@ -74,16 +130,29 @@ exports.showCmd = (rl, id) => {
  * @param rl    Objeto readline usado para implementar el CLI.
  */
 exports.addCmd = rl => {
-
-    rl.question(colorize('Introduzca una pregunta: ', 'red'), question => {
-
-        rl.question(colorize('Introduzca la respuesta ', 'red'), answer => {
-
-            model.add(question, answer);
-            log(`${colorize('Se ha añadido', 'magenta')}: ${question} ${colorize('=>', 'magenta')} ${answer}`);
+    makeQuestion(rl, ' Introduzca una pregunta ')
+        .then(q => {
+            return makeQuestion(rl, ' Introduzca la respuesta ')
+                .then(a => {
+                    return { question: q, answer: a };
+                });
+        })
+        .then(quiz => {
+            return models.quiz.create(quiz);
+        })
+        .then((quiz) => {
+            log(` ${colorize('Se ha añadido', 'magenta')}: ${quiz.question} ${colorize('=>', 'magenta')} ${quiz.answer}`);
+        })
+        .catch(Sequelize.ValidationError, error => {
+            errorlog('El quiz es erróneo');
+            error.errors.forEach(({ message }) => errorlog(message));
+        })
+        .catch(error => {
+            errorlog(error.message);
+        })
+        .then(() => {
             rl.prompt();
         });
-    });
 };
 
 
@@ -94,18 +163,14 @@ exports.addCmd = rl => {
  * @param id Clave del quiz a borrar en el modelo.
  */
 exports.deleteCmd = (rl, id) => {
-
-    if (typeof id === "undefined") {
-        errorlog(`Falta el parámetro id.`);
-    } else {
-        try {
-            model.deleteByIndex(id);
-        } catch (error) {
+    validateId(id)
+        .then(id => models.quiz.destroy({ where: { id } }))
+        .catch(error => {
             errorlog(error.message);
-        }
-    }
-
-    rl.prompt();
+        })
+        .then(() => {
+            rl.prompt();
+        })
 };
 
 
@@ -121,30 +186,41 @@ exports.deleteCmd = (rl, id) => {
  * @param id Clave del quiz a editar en el modelo.
  */
 exports.editCmd = (rl, id) => {
-    if (typeof id === "undefined") {
-        errorlog(`Falta el parámetro id.`);
-        rl.prompt();
-    } else {
-        try {
-            const quiz = model.getByIndex(id);
+    validateId(id)
+        .then(id => models.quiz.findById(id))
+        .then(quiz => {
+            if (!quiz) {
+                throw new Error(`No existe un quiz asociado al id=${id}.`);
+            }
 
             process.stdout.isTTY && setTimeout(() => { rl.write(quiz.question) }, 0);
-
-            rl.question(colorize('Introduzca una pregunta: ', 'red'), question => {
-
-                process.stdout.isTTY && setTimeout(() => { rl.write(quiz.answer) }, 0);
-
-                rl.question(colorize('Introduzca la respuesta ', 'red'), answer => {
-                    model.update(id, question, answer);
-                    log(`Se ha cambiado el quiz ${colorize(id, 'magenta')} por: ${question} ${colorize('=>', 'magenta')} ${answer}`);
-                    rl.prompt();
+            return makeQuestion(rl, ' Introduzca la pregunta ')
+                .then(q => {
+                    process.stdout.isTTY && setTimeout(() => { rl.write(quiz.answer) }, 0);
+                    return makeQuestion(rl, ' Introduzca la respuesta ')
+                        .then(a => {
+                            quiz.question = q;
+                            quiz.answer = a;
+                            return quiz;
+                        });
                 });
-            });
-        } catch (error) {
+        })
+        .then(quiz => {
+            return quiz.save();
+        })
+        .then(quiz => {
+            log(` Se ha cambiado el quiz ${colorize(quiz.id, 'magenta')} por: ${quiz.question} ${colorize('=>', 'magenta')} ${quiz.answer}`);
+        })
+        .catch(Sequelize.ValidationError, error => {
+            errorlog('El quiz es erróneo');
+            error.errors.forEach(({ message }) => errorlog(message));
+        })
+        .catch(error => {
             errorlog(error.message);
+        })
+        .then(() => {
             rl.prompt();
-        }
-    }
+        });
 };
 
 
@@ -155,30 +231,36 @@ exports.editCmd = (rl, id) => {
  * @param id Clave del quiz a probar.
  */
 exports.testCmd = (rl, id) => {
-    if (typeof id === "undefined") {
-        errorlog(`Falta el parámetro id.`);
-        rl.prompt();
-    } else {
-        try {
-            const quiz = model.getByIndex(id);
+    validateId(id)
+        .then(id => models.quiz.findById(id))
+        .then(quiz => {
+            if (!quiz) {
+                throw new Error(`No existe un quiz asociado al id=${id}.`);
+            }
 
-            rl.question(colorize((`${quiz.question}? `), 'red'), answer => {
-                if (answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
-                    log('Su respuesta es correcta.');
-                    biglog('Correcta', 'green');
-                    rl.prompt();
-                } else {
-                    log('Su respuesta es incorrecta.');
-                    biglog('Incorrecta', 'red');
-                    rl.prompt();
-                }
-            });
+            return makeQuestion(rl, `${quiz.question}? `)
+                .then(a => {
+                    if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
+                        log('Su respuesta es correcta.');
+                        biglog('Correcta', 'green');
+                    } else {
+                        log('Su respuesta es incorrecta.');
+                        biglog('Incorrecta', 'red');
+                    }
+                });
 
-        } catch (error) {
+        })
+        .catch(Sequelize.ValidationError, error => {
+            errorlog('El quiz es erróneo');
+            error.errors.forEach(({ message }) => errorlog(message));
+        })
+        .catch(error => {
             errorlog(error.message);
+        })
+        .then(() => {
             rl.prompt();
-        }
-    }
+        });
+
 };
 
 
@@ -194,39 +276,51 @@ exports.playCmd = rl => {
 
     let toBeResolved = [];
 
-    model.getAll().forEach((quiz, id) => {
-        toBeResolved.push(id);
-    });
+    models.quiz.findAll()
+        .each(quiz => {
+            toBeResolved.push(quiz.id);
+        })
+        .then(() => {
 
-    const playOne = () => {
+            const playOne = () => {
 
-        if (toBeResolved.length == 0) {
-            log('Ninguna pregunta restante. Fin del juego. Puntuación:');
-            biglog(score, 'blue');
-            rl.prompt();
-        } else {
-
-            let rand = parseInt(Math.random() * toBeResolved.length);
-
-            const quiz = model.getByIndex(toBeResolved[rand]);
-
-            rl.question(colorize((`${quiz.question}? `), 'red'), answer => {
-                if (answer.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
-                    score++;
-                    log(`CORRECTO - Número de aciertos: ${score}`);
-                    toBeResolved.splice(rand, 1);
-                    playOne();
-                    rl.prompt();
-                } else {
-                    log('INCORRECTO');
-                    log('Fin del juego. Puntuación:');
+                if (toBeResolved.length == 0) {
+                    log('Ninguna pregunta restante. Fin del juego. Puntuación:');
                     biglog(score, 'blue');
                     rl.prompt();
+                } else {
+
+                    let rand = parseInt(Math.random() * toBeResolved.length);
+
+                    validateId(rand)
+                        .then(id => models.quiz.findById(toBeResolved[rand]))
+                        .then(quiz => {
+
+                            return makeQuestion(rl, `${quiz.question}? `)
+                                .then(a => {
+                                    if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
+                                        score++;
+                                        log(`CORRECTO - Número de aciertos: ${score}`);
+                                        toBeResolved.splice(rand, 1);
+                                        playOne();
+                                    } else {
+                                        log('INCORRECTO');
+                                        log('Fin del juego. Puntuación:');
+                                        biglog(score, 'blue');
+                                    }
+
+                                });
+                        })
+                        .catch(error => {
+                            errorlog(error.message);
+                        })
+                        .then(() => {
+                            rl.prompt();
+                        });
                 }
-            });
-        }
-    }
-    playOne();
+            }
+            playOne();
+        })
 };
 
 
