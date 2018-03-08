@@ -304,7 +304,7 @@ exports.playCmd = rl => {
                                         toBeResolved.splice(rand, 1);
                                         playOne();
                                     } else {
-                                        
+                                        log('INCORRECTA');
                                         log('Fin del juego. Puntuación:');
                                         biglog(score, 'blue');
                                     }
