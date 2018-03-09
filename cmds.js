@@ -305,8 +305,8 @@ exports.playCmd = rl => {
                                         playOne();
                                     } else {
                                         log('INCORRECTO');
-                                        log('Fin del juego. Puntuación:');
-                                        biglog(`${score}`, 'blue');
+                                        log(`Fin del juego. Puntuación: ${score}`);
+                                        biglog('score', 'blue');
                                         rl.prompt();
                                     }
 
