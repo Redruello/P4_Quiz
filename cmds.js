@@ -306,7 +306,7 @@ exports.playCmd = rl => {
                                     } else {
                                         log('INCORRECTO');
                                         log(`Fin del juego. Puntuación: ${score}`);
-                                        biglog('score', 'blue');
+                                        biglog(score, 'blue');
                                         rl.prompt();
                                     }
 
