@@ -285,7 +285,7 @@ exports.playCmd = rl => {
             const playOne = () => {
 
                 if (toBeResolved.length == 0) {
-                    log('Ninguna pregunta restante. Fin del juego. Puntuación:');
+                    log(`Ninguna pregunta restante. Fin del juego. Puntuación: ${score}`);
                     biglog(score, 'blue');
                     rl.prompt();
                 } else {
