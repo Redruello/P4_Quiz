@@ -296,7 +296,7 @@ exports.playCmd = rl => {
                         .then(id => models.quiz.findById(toBeResolved[rand]))
                         .then(quiz => {
 
-                            return makeQuestion(rl, `${quiz.question}? `)
+                            makeQuestion(rl, `${quiz.question}? `)
                                 .then(a => {
                                     if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
                                         score++;
