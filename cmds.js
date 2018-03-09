@@ -307,6 +307,7 @@ exports.playCmd = rl => {
                                         log('INCORRECTO');
                                         log('Fin del juego. Puntuación:');
                                         biglog(score, 'blue');
+                                        rl.prompt();
                                     }
 
                                 });
