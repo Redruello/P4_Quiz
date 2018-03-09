@@ -286,7 +286,7 @@ exports.playCmd = rl => {
 
                 if (toBeResolved.length == 0) {
                     log(`Ninguna pregunta restante. Fin del juego. Aciertos: ${score}`);
-                    //biglog(score, 'blue');
+                    biglog(score, 'blue');
                     rl.prompt();
                 } else {
 
@@ -304,10 +304,10 @@ exports.playCmd = rl => {
                                         toBeResolved.splice(rand, 1);
                                         playOne();
                                     } else {
-                                        //log('INCORRECTO');
-                                        log(`INCORRECTO - Fin del juego. Aciertos: ${score}`);
-                                        //biglog(score, 'blue');
-                                        //rl.prompt();
+                                        log('INCORRECTO');
+                                        log(`Fin del juego. Aciertos: ${score}`);
+                                        biglog(score, 'blue');
+                                        rl.prompt();
                                     }
 
                                 });
