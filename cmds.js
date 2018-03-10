@@ -286,7 +286,7 @@ exports.playCmd = rl => {
 
                 if (toBeResolved.length == 0) {
                     console.log(`Ninguna pregunta restante. Fin del juego. Aciertos: ${score}`);
-                    biglog(score, 'blue');
+                    //biglog(score, 'blue');
                     rl.prompt();
                 } else {
 
