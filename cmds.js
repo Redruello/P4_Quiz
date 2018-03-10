@@ -295,12 +295,14 @@ exports.playCmd = rl => {
                     validateId(rand)
                         .then(id => models.quiz.findById(toBeResolved[rand]))
                         .then(quiz => {
+                            
+                            toBeResolved.splice(rand, 1);
 
                             return makeQuestion(rl, `${quiz.question}? `)
                                 .then(a => {
                                     if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
                                         score++;
-                                        toBeResolved.splice(rand, 1);
+                                        
                                         console.log(`Respuesta correcta. Aciertos: ${score}`);
                                         
                                         playOne();
