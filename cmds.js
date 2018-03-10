@@ -300,12 +300,12 @@ exports.playCmd = rl => {
                                 .then(a => {
                                     if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
                                         score++;
-                                        log(`CORRECTO - Aciertos: ${score}`);
+                                        console.log(`CORRECTO - Aciertos: ${score}`);
                                         toBeResolved.splice(rand, 1);
                                         playOne();
                                     } else {
-                                        log('INCORRECTO');
-                                        log(`Fin del juego. Aciertos: ${score}`);
+                                        //log('INCORRECTO');
+                                        console.log(`INCORRECTO - Fin del juego. Aciertos: ${score}`);
                                         biglog(score, 'blue');
                                         rl.prompt();
                                     }
