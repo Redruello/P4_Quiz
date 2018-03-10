@@ -285,7 +285,7 @@ exports.playCmd = rl => {
             const playOne = () => {
 
                 if (toBeResolved.length == 0) {
-                    log(`Ninguna pregunta restante. Fin del juego. Aciertos: ${score}`);
+                    console.log(`Ninguna pregunta restante. Fin del juego. Aciertos: ${score}`);
                     biglog(score, 'blue');
                     rl.prompt();
                 } else {
@@ -300,13 +300,13 @@ exports.playCmd = rl => {
                                 .then(a => {
                                     if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
                                         score++;
-                                        console.log(`CORRECTO - Aciertos: ${score}`);
+                                        console.log(`Respuesta correcta. Aciertos: ${score}`);
                                         toBeResolved.splice(rand, 1);
                                         playOne();
                                     } else {
                                         //log('INCORRECTO');
-                                        console.log(`INCORRECTO - Fin del juego. Aciertos: ${score}`);
-                                        biglog(score, 'blue');
+                                        console.log(`Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
+                                        //biglog(score, 'blue');
                                         rl.prompt();
                                     }
 
