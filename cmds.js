@@ -291,26 +291,23 @@ exports.playCmd = rl => {
                 } else {
 
                     let rand = parseInt(Math.random() * toBeResolved.length);
+                    let quiz = toBeResolved[rand];
 
-                    validateId(rand)
-                        .then(id => models.quiz.findById(toBeResolved[rand]))
-                        .then(quiz => {
 
-                            return makeQuestion(rl, `${quiz.question}? `)
-                                .then(a => {
-                                    if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
-                                        score++;
-                                        console.log(`Respuesta correcta. Aciertos: ${score}`);
-                                        toBeResolved.splice(rand, 1);
-                                        playOne();
-                                    } else {
-                                        //log('INCORRECTO');
-                                        console.log(`Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
-                                        //biglog(score, 'blue');
-                                        rl.prompt();
-                                    }
+                    return makeQuestion(rl, `${quiz.question}? `)
+                        .then(a => {
+                            if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
+                                score++;
+                                console.log(`Respuesta correcta. Aciertos: ${score}`);
+                                toBeResolved.splice(rand, 1);
+                                playOne();
+                            } else {
+                                //log('INCORRECTO');
+                                console.log(`Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
+                                //biglog(score, 'blue');
+                                rl.prompt();
+                            }
 
-                                });
                         })
                         .catch(error => {
                             errorlog(error.message);
