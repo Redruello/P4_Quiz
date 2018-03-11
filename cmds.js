@@ -278,43 +278,46 @@ exports.playCmd = rl => {
 
     models.quiz.findAll()
         .each(quiz => {
-            toBeResolved.push(quiz.id);
+            toBeResolved.push(quiz);
         })
         .then(() => {
 
             const playOne = () => {
 
                 if (toBeResolved.length == 0) {
-                    console.log(`Ninguna pregunta restante. Fin del juego. Aciertos: ${score}`);
+                    log(`Ninguna pregunta restante. Fin del juego. Aciertos: ${score}`);
                     //biglog(score, 'blue');
                     rl.prompt();
                 } else {
 
                     let rand = parseInt(Math.random() * toBeResolved.length);
 
-                    validateId(rand)
-                        .then(id => models.quiz.findById(toBeResolved[rand]))
-                        .then(quiz => {
-                            
-                            toBeResolved.splice(rand, 1);
+                    let quiz = toBeResolved[rand];
 
-                            return makeQuestion(rl, `${quiz.question}? `)
-                                .then(a => {
-                                    if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
-                                        score++;
-                                        
-                                        console.log(`Respuesta correcta. Aciertos: ${score}`);
-                                        
-                                        playOne();
-                                    } else {
-                                        //log('INCORRECTO');
-                                        console.log(`Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
-                                        //biglog(score, 'blue');
-                                        rl.prompt();
-                                    }
+                    toBeResolved.splice(rand, 1);
 
-                                });
+                    return makeQuestion(rl, `${quiz.question}? `)
+                        .then(a => {
+                            if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
+                                score++;
+
+                                console.log(`Respuesta correcta. Aciertos: ${score}`);
+
+                                playOne();
+                            } else {
+                                //log('INCORRECTO');
+                                console.log(`Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
+                                //biglog(score, 'blue');
+                                rl.prompt();
+                            }
+
                         })
+
+                        .catch(Sequelize.ValidationError, error => {
+                            errorlog('El quiz es erróneo');
+                            error.errors.forEach(({ message }) => errorlog(message));
+                        })
+
                         .catch(error => {
                             errorlog(error.message);
                         })
