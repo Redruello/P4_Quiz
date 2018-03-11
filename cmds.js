@@ -306,7 +306,7 @@ exports.playCmd = rl => {
                                 playOne();
                             } else {
                                 //log('INCORRECTO');
-                                log(`Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
+                                console.log(`Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
                                 //biglog(score, 'blue');
                                 rl.prompt();
                             }
