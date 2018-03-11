@@ -301,11 +301,12 @@ exports.playCmd = rl => {
                             if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
                                 score++;
 
-                                log(`${colorize('CORRECTO', 'green')} - Número de aciertos: ${score}`);
+                                console.log(`Respuesta correcta. Aciertos: ${score}`);
 
                                 playOne();
                             } else {
-                                log(`${colorize('INCORRECTO', 'red')} - Fin del juego. Número de aciertos: ${score}`);
+                                //log('INCORRECTO');
+                                log(`Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
                                 //biglog(score, 'blue');
                                 rl.prompt();
                             }
