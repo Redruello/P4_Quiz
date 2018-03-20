@@ -301,33 +301,33 @@ exports.playCmd = (socket, rl) => {
                             if (a.toLowerCase().trim() === quiz.answer.toLowerCase().trim()) {
                                 score++;
 
-                                console.log(socket, `Respuesta correcta. Aciertos: ${score}`);
+                                log(socket, `Respuesta correcta. Aciertos: ${score}`);
 
-                                playOne();
+                                return playOne();
                             } else {
                                 //log('INCORRECTO');
-                                console.log(socket, `Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
+                                log(socket, `Respuesta incorrecta. Fin del juego. Aciertos: ${score}`);
                                 //biglog(score, 'blue');
-                                rl.prompt();
+                                //rl.prompt();
                             }
 
                         })
-
-                        .catch(Sequelize.ValidationError, error => {
-                            errorlog(socket, 'El quiz es erróneo');
-                            error.errors.forEach(({ message }) => errorlog(message));
-                        })
-
-                        .catch(error => {
-                            errorlog(socket, error.message);
-                        })
-                        .then(() => {
-                            rl.prompt();
-                        });
                 }
-            }
-            playOne();
-        })
+            };
+
+
+            playOne()
+                .then(() => {
+                    log(socket, `Fin del juego. Aciertos: ${score}`);
+                })
+
+                .catch(error => {
+                    errorlog(socket, error.message);
+                })
+                .then(() => {
+                    rl.prompt();
+                });
+        });
 };
 
 
